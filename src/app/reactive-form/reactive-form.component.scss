@@ -1,0 +1,88 @@
+div {
+  font-family: sans-serif;
+}
+.checkbox-lg .form-check-input {
+  top: 0.8rem;
+  scale: 1.4;
+  margin-right: 0.7rem;
+}
+
+.checkbox-lg .form-check-label {
+  padding-top: 9px;
+  font-weight: bold;
+}
+.form-check {
+  float: right;
+}
+
+.form {
+  border: 1px solid red;
+  width: 50%;
+  margin: auto;
+}
+.form div {
+  margin: 10px;
+  padding: 5px;
+}
+button {
+  margin: 10px;
+}
+.form div input {
+  margin: 10px;
+  // padding: 10px;
+}
+//
+//
+@media (min-width: 991.98px) {
+  main {
+    padding-left: 240px;
+  }
+}
+
+/* Sidebar */
+.sidebar {
+  background-color: #fbfbfb;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  padding: 58px 0 0; /* Height of navbar */
+  box-shadow: 0 25px 25px 0 rgb(0 0 0 / 25%), 0 2px 10px 0 rgb(0 0 0 / 5%);
+  width: 240px;
+  z-index: 600;
+}
+.sidebar i {
+  margin: 10px;
+}
+@media (max-width: 991.98px) {
+  .sidebar {
+    width: 100%;
+  }
+}
+.sidebar .active {
+  border-radius: 5px;
+  box-shadow: 0 2px 5px 0 rgb(0 0 0 / 16%), 0 2px 10px 0 rgb(0 0 0 / 12%);
+}
+
+.sidebar-sticky {
+  position: relative;
+  top: 0;
+  height: calc(100vh - 48px);
+  padding-top: 0.5rem;
+  overflow-x: hidden;
+  overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
+}
+
+.cdk-drag-placeholder {
+  opacity: 0;
+}
+
+.example-box:last-child {
+  border: none;
+}
+.cdk-drag-animating {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+.example-list.cdk-drop-list-dragging .example-box:not(.cdk-drag-placeholder) {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}

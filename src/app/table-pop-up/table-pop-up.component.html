@@ -1,0 +1,192 @@
+<div
+  class="modal fade"
+  id="tablePopUp"
+  tabindex="-1"
+  aria-labelledby="tablePopUpLabel"
+  role="dialog"
+  aria-hidden="true"
+>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="tablePopUpLabel">New Table</h2>
+        <button
+          type="button"
+          class="btn-close"
+          data-dismiss="modal"
+          aria-label="Close"
+          (click)="tablePopUp.hide()"
+        ></button>
+      </div>
+
+      <div class="modal-body">
+        <form [formGroup]="formTablePopUp">
+          <div class="form-group">
+            <label for="tableName" class="col-form-label">Table Name:</label>
+            <input
+              type="text"
+              class="form-control"
+              id="tableName"
+              formControlName="tableName"
+            />
+          </div>
+          <div class="form-group mb-3">
+            <select formControlName="fieldType" class="form-select">
+              <option [ngValue]="item" *ngFor="let item of fieldTypes">
+                {{ item }}
+                <br />
+              </option>
+            </select>
+
+            <div class="">
+              <p *ngIf="fieldType.value == 'checkbox'">
+                This Means Multiple Choices in each row
+              </p>
+              <p *ngIf="fieldType.value == 'radio'">
+                This Means Single Choices in each row
+              </p>
+            </div>
+          </div>
+          <hr />
+
+          <div class="form-group">
+            <h2>Create Your Rows</h2>
+            <div
+              formArrayName="rows"
+              *ngFor="let row of rows.controls; let i = index"
+              (click)="editItem(i, 'row')"
+            >
+              <h3>
+                {{ row }}
+                <input
+                  type="button"
+                  class="btn-close special"
+                  data-dismiss="modal"
+                  aria-label="Close"
+                  (click)="deleteItem(i, 'row')"
+                />
+              </h3>
+            </div>
+          </div>
+          <div>
+            <input
+              type="text"
+              class="form-control"
+              (change)="valuechange($event, 'row')"
+              [value]="rowName"
+            />
+          </div>
+
+          <!-- note that -->
+          <button
+            class="btn btn-primary"
+            *ngIf="editRowIndex == -1"
+            (click)="addItem('row')"
+          >
+            Add Row
+          </button>
+
+          <button
+            class="btn btn-secondary"
+            *ngIf="editRowIndex != -1"
+            (click)="addItem('row')"
+          >
+            Edit Row
+          </button>
+
+          <hr />
+          <!-- Columns -->
+
+          <div class="form-group">
+            <h2>Create Your Columns</h2>
+            <div
+              formArrayName="columns"
+              *ngFor="let col of columns.controls; let i = index"
+              (click)="editItem(i, 'col')"
+              class="columns"
+            >
+              <div>
+                <input
+                  type="button"
+                  class="btn-close"
+                  data-dismiss="modal"
+                  aria-label="Close"
+                  (click)="deleteItem(i, 'col')"
+                />
+                <h3>{{ col }}</h3>
+              </div>
+            </div>
+          </div>
+          <div>
+            <input
+              type="text"
+              class="form-control"
+              (change)="valuechange($event, 'col')"
+              [value]="colName"
+            />
+          </div>
+
+          <!-- note that -->
+          <button
+            class="btn btn-primary"
+            *ngIf="editColIndex == -1"
+            (click)="addItem('col')"
+          >
+            Add Column
+          </button>
+
+          <button
+            class="btn btn-secondary"
+            *ngIf="editColIndex != -1"
+            (click)="addItem('col')"
+          >
+            Edit Column
+          </button>
+
+          <hr />
+
+          <div *ngIf="rows.length || columns.length">
+            <p>Drag to reorder your elements</p>
+            <p>Click on the Element you want to edit</p>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-success" (click)="submitTable()">
+          Create Table
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div>
+  <table *ngFor="let table of tables" class="table table-striped">
+    <thead>
+      <tr>
+        <h2>{{ table.tableName.value }}</h2>
+      </tr>
+      <tr>
+        <th scope="col">#</th>
+        <th *ngFor="let col of table.columns.controls">
+          {{ col }}
+        </th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let row of table.rows.controls; let rowId = index">
+        <th scope="row">{{ row }}</th>
+        <td *ngFor="let cell of table.columns.controls">
+          <input
+            type="checkbox"
+            *ngIf="table.fieldType.value == 'checkbox'"
+            [name]="row"
+            disabled
+          />
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
