@@ -1,4 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnInit,
+  Output,
+  SimpleChanges,
+} from '@angular/core';
 import { FormArray, FormBuilder } from '@angular/forms';
 declare var window: any;
 @Component({
@@ -7,10 +15,14 @@ declare var window: any;
   styleUrls: ['./table-pop-up.component.scss'],
 })
 export class TablePopUpComponent implements OnInit {
-  tablePopUp: any;
-
   constructor(private fb: FormBuilder) {}
-
+  ngOnInit(): void {
+    this.tablePopUp = new window.bootstrap.Modal(
+      document.getElementById('tablePopUp')
+    );
+  }
+  //
+  tablePopUp: any;
   formTablePopUp = this.fb.group({
     tableName: [''],
     columns: this.fb.array([]),
@@ -47,34 +59,8 @@ export class TablePopUpComponent implements OnInit {
   //                         row1     columns
   // array Data of size rows -> {angular , Level 1 :true ,Level 2 :false }
 
-  ngOnInit(): void {
-    this.tablePopUp = new window.bootstrap.Modal(
-      document.getElementById('tablePopUp')
-    );
-
-    this.tablePopUp.show();
-  }
-
   editRowIndex: number = -1;
   editColIndex: number = -1;
-  addRow() {
-    if (this.rowName != '' && this.editRowIndex == -1) {
-      this.rows.controls.push(this.rowName);
-    } else if (this.editRowIndex != -1 && this.rowName != '') {
-      this.rows.controls.splice(this.editRowIndex, 0, this.rowName);
-      this.editRowIndex = -1;
-    }
-    // console.log(this.rows.controls);
-    this.rowName = '';
-  }
-  deleteRow(i: any) {
-    this.rows.controls.splice(i, i + 1);
-  }
-  editRow(i: any) {
-    this.rowName = this.rows.controls[i];
-    this.editRowIndex = i;
-    this.deleteRow(i);
-  }
 
   deleteItem(i: any, arrayName: any) {
     if (arrayName == 'row') {
@@ -117,8 +103,27 @@ export class TablePopUpComponent implements OnInit {
   }
   submitTable() {
     this.tables.push(this.formTablePopUp.controls);
-    console.log(this.tables);
+    // console.log(this.tables);
 
     this.tablePopUp.hide();
   }
 }
+
+// addRow() {
+//   if (this.rowName != '' && this.editRowIndex == -1) {
+//     this.rows.controls.push(this.rowName);
+//   } else if (this.editRowIndex != -1 && this.rowName != '') {
+//     this.rows.controls.splice(this.editRowIndex, 0, this.rowName);
+//     this.editRowIndex = -1;
+//   }
+//   // console.log(this.rows.controls);
+//   this.rowName = '';
+// }
+// deleteRow(i: any) {
+//   this.rows.controls.splice(i, i + 1);
+// }
+// editRow(i: any) {
+//   this.rowName = this.rows.controls[i];
+//   this.editRowIndex = i;
+//   this.deleteRow(i);
+// }

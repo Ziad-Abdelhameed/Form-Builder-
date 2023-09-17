@@ -1,4 +1,10 @@
-import { Component, ViewChild } from '@angular/core';
+import {
+  Component,
+  OnChanges,
+  OnInit,
+  SimpleChanges,
+  ViewChild,
+} from '@angular/core';
 import {
   AbstractControl,
   FormArray,
@@ -19,7 +25,7 @@ declare var window: any;
   templateUrl: './reactive-form.component.html',
   styleUrls: ['./reactive-form.component.scss'],
 })
-export class ReactiveFormComponent {
+export class ReactiveFormComponent implements OnInit {
   constructor(private fb: FormBuilder) {}
 
   ngOnInit(): void {
@@ -31,6 +37,12 @@ export class ReactiveFormComponent {
     );
     this.addNewElementPopUp = new window.bootstrap.Modal(
       document.getElementById('addNewElementPopUp')
+    );
+    this.tablePopUp = new window.bootstrap.Modal(
+      document.getElementById('tablePopUp')
+    );
+    this.paragraphPopup = new window.bootstrap.Modal(
+      document.getElementById('paragraphPopup')
     );
   }
   formBuilder = this.fb.group({
@@ -44,7 +56,7 @@ export class ReactiveFormComponent {
 
   inputs: any = [];
 
-  orderList = ['Input', 'Table', 'Sub Form', 'Combo Box'].sort();
+  orderList = ['Input', 'Table', 'Paragraph'].sort();
 
   event: any;
   CdkDragDrop: any;
@@ -75,6 +87,12 @@ export class ReactiveFormComponent {
     // this.subFormPopUp.show();
     this.newElement = event.container.data[0];
     if (event.container.data[0] == 'Input') this.formInput.show();
+    else if (event.container.data[0] == 'Table') {
+      this.tablePopUp.show();
+    } else if (event.container.data[0] == 'Dropdown') {
+    } else if (event.container.data[0] == 'Paragraph') {
+      this.paragraphPopup.show();
+    }
   }
 
   // to reorder elements
@@ -93,7 +111,6 @@ export class ReactiveFormComponent {
         event.currentIndex
       );
     }
-    // console.log(this.dives);
   }
 
   // sub form
@@ -116,40 +133,60 @@ export class ReactiveFormComponent {
     return this.subFormData.get('fields') as FormArray;
   }
 
-  // div Sub Form
+  //  new Sub Form
 
   dives: any = [];
-  addToDivId: any = -1;
-  onDropSubElement(event: CdkDragDrop<any>, i: any) {
-    this.addToDivId = i;
-    console.log(i);
-    this.onDropOne(event);
-  }
 
   submitSubForm() {
     this.subFormPopUp.hide();
-    this.dives.push({
-      divName: this.subFormName?.value,
-      divWidth: this.subFormWidth?.value,
-      fields: [],
-    });
+    if (this.editDivIndex == -1) {
+      this.dives.push({
+        subFormName: this.subFormName?.value,
+        subFormWidth: this.subFormWidth?.value,
+        fields: [],
+      });
 
-    var size = this.dives.length;
+      var size = this.dives.length;
+      console.log(this.newElement);
 
-    this.dives[size - 1].fields.push(this.input);
-    console.log(this.dives[size - 1]);
+      if (this.newElement == 'Input') {
+        this.dives[size - 1].fields.push(this.input);
+        this.input = '';
+      } else if (this.newElement == 'Table') {
+        this.dives[size - 1].fields.push(this.table);
 
-    this.input = '';
-
+        this.table = '';
+      } else if (this.newElement == 'Dropdown') {
+      } else if (this.newElement == 'Paragraph') {
+        this.dives[size - 1].fields.push({ pText: this.pText.value });
+        this.paragraph.reset();
+      }
+    } else if (this.editDivIndex != -1) {
+      this.dives[this.editDivIndex].subFormName = this.subFormName.value;
+      this.dives[this.editDivIndex].subFormWidth = this.subFormWidth.value;
+      this.editDivIndex = -1;
+    }
     this.subFormData.patchValue({
       subFormName: '',
       subFormWidth: '100',
       fields: [],
     });
-
-    // this.addNewElementPopUp.show();
+    console.log(this.dives);
   }
+  // End new Sub Form
 
+  // for editing Div
+
+  doubleClickEdit(divId: any) {
+    this.editDivIndex = divId;
+    console.log('welcome' + ' ' + divId);
+    var div = this.dives[divId];
+    this.subFormData.patchValue({
+      subFormName: div.subFormName,
+      subFormWidth: div.subFormWidth,
+    });
+    this.subFormPopUp.show();
+  }
   // End sub Form
 
   //POPUP for Input
@@ -162,16 +199,7 @@ export class ReactiveFormComponent {
   });
 
   formInput: any;
-  dropDownMenu = [
-    'text',
-    'password',
-    'number',
-    'email',
-    'tel',
-    'checkbox',
-    'submit',
-    'reset',
-  ];
+  dropDownMenu = ['text', 'password', 'number', 'email', 'tel', 'checkbox'];
   showen = false;
   editInputIndex: number = -1;
   editDivIndex: number = -1;
@@ -186,40 +214,25 @@ export class ReactiveFormComponent {
   public get sizeInput(): any {
     return this.popupInput.get('sizeInput');
   }
-  public get requiredInput(): any {
+  public get required(): any {
     return this.popupInput.get('required');
   }
 
-  // if (this.addToDivId != -1) {
-  //   this.dives[this.addToDivId].fields.push({});
-  //   this.addToDivId = -1;
-  // } else if (this.addToDivId == -1) {
-  //   if (this.editInputIndex != -1 && this.inputs.length) {
-  //     this.inputs[this.editInputIndex] = this.popupInput.value;
-  //     this.editInputIndex = -1;
-  //   } else if (this.editInputIndex == -1) {
-  //     this.inputs.push(this.popupInput.value);
-  //   }
-  // }
   input: any;
   onSubmit() {
     this.input = {
       typeInput: this.typeInput.value,
       nameInput: this.nameInput.value,
       sizeInput: this.sizeInput.value,
-      requiredInput: this.requiredInput.value,
+      required: this.required.value,
     };
-    console.log(this.input);
 
     this.formInput.hide();
     if (this.editDivIndex != -1 && this.editInputIndex != -1) {
       this.dives[this.editDivIndex].fields[this.editInputIndex] = this.input;
       this.input = '';
-      console.log(this.dives[this.editDivIndex].fields);
       this.editDivIndex = -1;
       this.editInputIndex = -1;
-
-      console.log('ediitt');
     } else this.addNewElementPopUp.show();
 
     this.popupInput.patchValue({
@@ -230,65 +243,220 @@ export class ReactiveFormComponent {
     });
   }
 
-  //
-  isRequired(event: any, index: number, fieldId: any) {
-    // this.dives[index].subFormData.required = event.currentTarget.checked;
-  }
-
-  // editInput(index: any) {
-  //   this.popupInput.setValue(this.inputs[index]);
-
-  //   this.editInputIndex = index;
-  //   this.formInput.show();
-  // }
-
-  editInput(divId: any, fieldId: any) {
-    var editInput = this.dives[divId].fields[fieldId];
-    console.log(editInput);
-
-    this.popupInput.patchValue({
-      typeInput: editInput.typeInput,
-      nameInput: editInput.nameInput,
-      sizeInput: editInput.sizeInput,
-      required: editInput.requiredInput,
-    });
-
-    this.editInputIndex = fieldId;
-    this.editDivIndex = divId;
-    this.formInput.show();
-  }
-
-  deleteInput(divId: any, fieldId: any) {
-    // this.inputs.splice(index, index + 1);
-  }
   // End of popup of Input
+
+  // paragraph
+  editParaIndex: any = -1;
+  paragraphPopup: any;
+  paragraph = this.fb.group({
+    pText: [''],
+  });
+
+  public get pText(): any {
+    return this.paragraph.get('pText');
+  }
+  addPara() {
+    this.paragraphPopup.hide();
+    if (this.editParaIndex != -1 && this.editDivIndex != -1) {
+      this.dives[this.editDivIndex].fields[this.editParaIndex].pText =
+        this.pText.value;
+      this.editParaIndex = -1;
+      this.editDivIndex = -1;
+      this.paragraph.patchValue({ pText: '' });
+    } else {
+      this.addNewElementPopUp.show();
+    }
+  }
+  // end paragraph
 
   // Add New Element PopUp
   addNewElementPopUp: any;
   addNewElementForm = this.fb.group({
-    subFormSelect: ['-1'],
+    subFormSelectId: ['0'],
   });
 
-  public get subFormSelect(): any {
-    return this.addNewElementForm.get('subFormSelect');
+  public get subFormSelectId(): any {
+    return this.addNewElementForm.get('subFormSelectId');
   }
+
   addNewSubForm() {
     this.addNewElementPopUp.hide();
     this.subFormPopUp.show();
   }
+
   addNewSubElement() {
     this.addNewElementPopUp.hide();
 
     if (this.newElement == 'Input') {
-      this.dives[this.subFormSelect.value].fields.push(this.input);
-      this.newElement = '';
+      this.dives[this.subFormSelectId.value].fields.push(this.input);
+    } else if (this.newElement == 'Table') {
+      this.dives[this.subFormSelectId.value].fields.push(this.table);
+    } else if (this.newElement == 'Paragraph') {
+      this.dives[this.subFormSelectId.value].fields.push({
+        pText: this.pText.value,
+      });
+      this.paragraph.reset();
     }
     this.addNewElementForm.patchValue({
-      subFormSelect: '-1',
+      subFormSelectId: '0',
     });
   }
 
   // End of Add New Element PopUp
+
+  // Table popup
+
+  tablePopUp: any;
+  formTablePopUp = this.fb.group({
+    tableName: [''],
+    columns: this.fb.array([]),
+    rows: this.fb.array([]),
+    fieldType: ['checkbox'],
+  });
+
+  rowName: any = '';
+  colName: any = '';
+
+  fieldTypes = ['checkbox'];
+
+  public get tableName(): any {
+    return this.formTablePopUp.get('tableName');
+  }
+
+  public get columns() {
+    return this.formTablePopUp.get('columns') as FormArray;
+  }
+  public get rows() {
+    return this.formTablePopUp.get('rows') as FormArray;
+  }
+  public get fieldType(): any {
+    return this.formTablePopUp.get('fieldType');
+  }
+
+  valuechange(event: any, arrayName: any) {
+    if (arrayName == 'row') this.rowName = event.currentTarget.value;
+    else this.colName = event.currentTarget.value;
+  }
+
+  editRowIndex: number = -1;
+  editColIndex: number = -1;
+
+  deleteItem(i: any, arrayName: any) {
+    if (arrayName == 'row') {
+      this.rows.controls.splice(i, 1);
+    } else if (arrayName == 'col') {
+      this.columns.controls.splice(i, 1);
+    }
+  }
+
+  editItem(i: any, arrayName: any) {
+    if (arrayName == 'row') {
+      this.editRowIndex = i;
+      this.rowName = this.rows.controls[i];
+    } else if (arrayName == 'col') {
+      this.editColIndex = i;
+      this.colName = this.columns.controls[i];
+    }
+    this.deleteItem(i, arrayName);
+  }
+
+  addItem(arrayName: any) {
+    if (arrayName == 'row') {
+      if (this.rowName != '' && this.editRowIndex == -1) {
+        this.rows.controls.push(this.rowName);
+      } else if (this.rowName != '' && this.editRowIndex != -1) {
+        this.rows.controls.splice(this.editRowIndex, 0, this.rowName);
+        this.editRowIndex = -1;
+      }
+
+      this.rowName = '';
+    } else if (arrayName == 'col') {
+      if (this.editColIndex == -1 && this.colName != '') {
+        this.columns.controls.push(this.colName);
+      } else if (this.colName != '' && this.editColIndex != -1) {
+        this.columns.controls.splice(this.editColIndex, 0, this.colName);
+        this.editColIndex = -1;
+      }
+      this.colName = '';
+    }
+  }
+  table: any;
+  editTableIndex: any = -1;
+  submitTable() {
+    this.table = {
+      tableName: this.tableName.value,
+      fieldType: this.fieldType.value,
+      columns: this.columns.controls,
+      rows: this.rows.controls,
+    };
+    this.columns.controls = [];
+    this.rows.controls = [];
+    this.formTablePopUp.patchValue({
+      tableName: '',
+      fieldType: 'checkbox',
+    });
+    this.tablePopUp.hide();
+
+    // change
+
+    if (this.editTableIndex != -1) {
+      this.dives[this.editDivIndex].fields[this.editTableIndex] = this.table;
+      this.editTableIndex = -1;
+      this.editDivIndex = -1;
+      this.table = '';
+    } else {
+      this.addNewElementPopUp.show();
+    }
+  }
+  // End Table popup
+
+  // Common Functions
+  deletee(divId: any, fieldId: any) {
+    if (this.dives[divId].fields.length == 1) {
+      this.dives.splice(divId, divId + 1);
+    } else this.dives[divId].fields.splice(fieldId, fieldId + 1);
+  }
+  isRequired(event: any, divId: any, fieldId: any) {
+    this.dives[divId].fields[fieldId].required = event.currentTarget.checked;
+  }
+
+  edit(divId: any, fieldId: any) {
+    if (this.dives[divId].fields[fieldId].typeInput) {
+      var editInput = this.dives[divId].fields[fieldId];
+
+      this.popupInput.setValue({
+        typeInput: editInput.typeInput,
+        nameInput: editInput.nameInput,
+        sizeInput: editInput.sizeInput,
+        required: editInput.required,
+      });
+
+      this.formInput.show();
+      this.editInputIndex = fieldId;
+    } else if (this.dives[divId].fields[fieldId].fieldType) {
+      var editTable = this.dives[divId].fields[fieldId];
+      //
+
+      this.columns.controls = editTable.columns;
+      this.rows.controls = editTable.rows;
+      this.formTablePopUp.patchValue({
+        tableName: editTable.tableName,
+        fieldType: editTable.fieldType,
+      });
+      console.log(this.formTablePopUp.controls);
+
+      //
+      this.tablePopUp.show();
+      this.editTableIndex = fieldId;
+    } else if (this.dives[divId].fields[fieldId].pText) {
+      this.paragraph.patchValue({
+        pText: this.dives[divId].fields[fieldId].pText,
+      });
+      this.editParaIndex = fieldId;
+      this.paragraphPopup.show();
+    }
+    this.editDivIndex = divId;
+  }
 }
 
 // show popup

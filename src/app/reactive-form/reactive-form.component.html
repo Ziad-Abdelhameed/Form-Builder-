@@ -40,6 +40,8 @@
       </div>
       <!-- Show Elements for Sub Form -->
 
+      <p class="text-center">Double click on Sub Form You want to edit</p>
+
       <div
         class="form-group container"
         cdkDropList
@@ -49,9 +51,7 @@
         (cdkDropListDropped)="onDropTwo($event)"
       >
         <div
-          class="border border-7 border-success w-{{
-            div.divWidth
-          }} my-4 mx-auto"
+          class=" w-{{ div.subFormWidth }} my-4 mx-auto"
           *ngFor="let div of dives; index as i"
           cdkDrag
           cdkDropList
@@ -60,80 +60,104 @@
           [cdkDropListConnectedTo]="[subElement]"
           class="form-group"
           (cdkDropListDropped)="onDropTwo($event)"
+          (dblclick)="doubleClickEdit(i)"
         >
           <h2>
-            {{ div.divName }}
+            {{ div.subFormName }}
           </h2>
-
-          <div
-            class="form-group border border-8 container my-4 mx-auto"
-            *ngFor="let field of div.fields; index as fieldIndex"
-            cdkDrag
-          >
-            {{ field.typeInput }}
+          <div class="border border-7 border-success">
             <div
-              class="form-group col-md-{{ field.sizeInput }} mx-auto"
-              *ngIf="
-                field.typeInput != 'button' &&
-                field.typeInput != 'submit' &&
-                field.typeInput != 'reset'
-              "
+              class="form-group border border-8 container my-4 mx-auto"
+              *ngFor="let field of div.fields; index as fieldIndex"
+              cdkDrag
             >
-              <label [for]="field.nameInput + fieldIndex" class="form-label"
-                ><h2>{{ field.nameInput }}</h2></label
-              >
-              <input
-                [type]="field.typeInput"
-                [id]="field.nameInput + fieldIndex"
-                class="form-control"
-              />
-            </div>
-
-            <!-- Submit Button -->
-            <div *ngIf="field.typeInput == 'submit'" class="form-group">
-              <input
-                [type]="field.typeInput"
-                [id]="field.nameInput + fieldIndex"
-                class="col-sm-{{ field.sizeInput }} p-1 btn btn-primary"
-                [value]="field.nameInput"
-              />
-            </div>
-            <!-- Reset Button -->
-            <div *ngIf="field.typeInput == 'reset'" class="form-group">
-              <input
-                [type]="field.typeInput"
-                [id]="field.nameInput + fieldIndex"
-                class="col-sm-{{ field.sizeInput }} p-1 btn btn-secondary"
-                [value]="field.nameInput"
-              />
-            </div>
-
-            <div>
-              <button
-                class="btn btn-primary"
-                (click)="editInput(i, fieldIndex)"
-              >
-                Edit
-              </button>
-              <button
-                class="btn btn-danger"
-                (click)="deleteInput(i, fieldIndex)"
-              >
-                Delete
-              </button>
-
-              <div class="form-check checkbox-lg">
+              <!-- common -->
+              <div class="form-check" *ngIf="field.typeInput">
                 <input
                   class="form-check-input"
                   type="checkbox"
-                  [id]="'required' + fieldIndex"
-                  [checked]="field.requiredInput"
+                  [id]="'required' + i + fieldIndex"
+                  [checked]="field.required"
                   (change)="isRequired($event, i, fieldIndex)"
                 />
-                <label class="form-check-label" [for]="'required' + fieldIndex">
+                <label
+                  class="form-check-label"
+                  [for]="'required' + i + fieldIndex"
+                >
                   Requird
                 </label>
               </div>
+              <!-- common -->
+              <!-- input -->
+              <div *ngIf="field.typeInput">
+                <div
+                  class="form-group col-md-{{ field.sizeInput }} mx-auto"
+                  *ngIf="field.typeInput != ''"
+                >
+                  <label
+                    [for]="field.nameInput + i + fieldIndex"
+                    class="form-label"
+                    ><h2>{{ field.nameInput }}</h2></label
+                  >
+                  <input
+                    [type]="field.typeInput"
+                    [id]="field.nameInput + i + fieldIndex"
+                    class="form-control"
+                  />
+                </div>
+              </div>
+
+              <!-- input -->
+
+              <!-- Paragraph -->
+              <div
+                class="form-floating"
+                *ngIf="field.typeInput == null && field.fieldType == null"
+              >
+                <p>{{ field.pText }}</p>
+              </div>
+              <!-- Paragraph -->
+              <!-- Table -->
+              <div
+                *ngIf="field.fieldType == 'checkbox' && field.tableName != ''"
+              >
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <h2>{{ field.tableName }}</h2>
+                    </tr>
+                    <tr>
+                      <th scope="col">#</th>
+                      <th *ngFor="let col of field.columns">
+                        {{ col }}
+                      </th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let row of field.rows; let rowId = index">
+                      <th scope="row">{{ row }}</th>
+                      <td *ngFor="let cell of field.columns">
+                        <input
+                          type="checkbox"
+                          *ngIf="field.fieldType == 'checkbox'"
+                          [name]="row"
+                        />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <!-- Table -->
+
+              <!-- Common -->
+              <button class="btn btn-primary" (click)="edit(i, fieldIndex)">
+                Edit
+              </button>
+              <button class="btn btn-danger" (click)="deletee(i, fieldIndex)">
+                Delete
+              </button>
+              <!-- Common -->
             </div>
           </div>
         </div>
@@ -150,7 +174,6 @@
       >
         <div class="border border-5 p-5">Add New element</div>
       </div>
-      <!-- Show Elements for Input -->
     </form>
   </div>
 </div>
@@ -331,17 +354,21 @@
             </button>
           </div>
           <div class="form-group">
-            <button class="btn btn-success" (click)="addNewSubElement()">
-              Add To Sub Form Whose Name
-            </button>
-
             <div class="form-group mb-3">
-              <select class="form-select" formControlName="subFormSelect">
-                <option [ngValue]="i" *ngFor="let div of dives; let i = index">
-                  {{ div.divName }}
-                  <br />
-                </option>
-              </select>
+              <div *ngIf="dives.length">
+                <button class="btn btn-success" (click)="addNewSubElement()">
+                  Add To Sub Form Whose Name
+                </button>
+                <p>Created Sub Forms</p>
+                <select class="form-select" formControlName="subFormSelectId">
+                  <option
+                    [ngValue]="i"
+                    *ngFor="let div of dives; let i = index"
+                  >
+                    {{ div.subFormName }}
+                  </option>
+                </select>
+              </div>
             </div>
           </div>
         </form>
@@ -349,15 +376,206 @@
     </div>
   </div>
 </div>
+
 <!-- End of Add New Sub Form Element -->
-<!-- 
-        <ng-template #Label>
-          <label>Label</label>
-        </ng-template>
-        <ng-template #Checkbox>
-          <input type="checkbox" value="checkbox" />
-        </ng-template>
-        <ng-template #Input>
-          <input type="text" value="inputText" />
-        </ng-template>
--->
+
+<!-- Table PopUp -->
+<div
+  class="modal fade"
+  id="tablePopUp"
+  tabindex="-1"
+  aria-labelledby="tablePopUpLabel"
+  role="dialog"
+  aria-hidden="true"
+>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="tablePopUpLabel">New Table</h2>
+        <button
+          type="button"
+          class="btn-close"
+          data-dismiss="modal"
+          aria-label="Close"
+          (click)="tablePopUp.hide()"
+        ></button>
+      </div>
+
+      <div class="modal-body">
+        <form [formGroup]="formTablePopUp">
+          <div class="form-group">
+            <label for="tableName" class="col-form-label">Table Name:</label>
+            <input
+              type="text"
+              class="form-control"
+              id="tableName"
+              formControlName="tableName"
+            />
+          </div>
+          <div class="form-group mb-3">
+            <select formControlName="fieldType" class="form-select">
+              <option [ngValue]="item" *ngFor="let item of fieldTypes">
+                {{ item }}
+                <br />
+              </option>
+            </select>
+
+            <div class="">
+              <p *ngIf="fieldType.value == 'checkbox'" class="form-text">
+                This Means Multiple Choices in each row
+              </p>
+              <p *ngIf="fieldType.value == 'radio'" class="form-text">
+                This Means Single Choices in each row
+              </p>
+            </div>
+          </div>
+          <hr />
+
+          <!-- Columns -->
+
+          <div class="form-group">
+            <h2>Create Your Columns</h2>
+            <div
+              formArrayName="columns"
+              *ngFor="let col of columns.controls; let i = index"
+              class="columns"
+            >
+              <input
+                type="button"
+                class="btn-close"
+                data-dismiss="modal"
+                aria-label="Close"
+                (click)="deleteItem(i, 'col')"
+              />
+              <h3 (click)="editItem(i, 'col')">{{ col }}</h3>
+            </div>
+          </div>
+          <div>
+            <input
+              type="text"
+              class="form-control"
+              (change)="valuechange($event, 'col')"
+              [value]="colName"
+            />
+          </div>
+
+          <!-- note that -->
+          <button
+            class="btn btn-primary"
+            *ngIf="editColIndex == -1"
+            (click)="addItem('col')"
+          >
+            Add Column
+          </button>
+
+          <button
+            class="btn btn-secondary"
+            *ngIf="editColIndex != -1"
+            (click)="addItem('col')"
+          >
+            Edit Column
+          </button>
+          <hr />
+          <div class="form-group">
+            <h2>Create Your Rows</h2>
+            <div
+              formArrayName="rows"
+              *ngFor="let row of rows.controls; let i = index"
+              (click)="editItem(i, 'row')"
+            >
+              <h3>
+                {{ row }}
+                <input
+                  type="button"
+                  class="btn-close special"
+                  data-dismiss="modal"
+                  aria-label="Close"
+                  (click)="deleteItem(i, 'row')"
+                />
+              </h3>
+            </div>
+          </div>
+          <div>
+            <input
+              type="text"
+              class="form-control"
+              (change)="valuechange($event, 'row')"
+              [value]="rowName"
+            />
+          </div>
+
+          <!-- note that -->
+          <button
+            class="btn btn-primary"
+            *ngIf="editRowIndex == -1"
+            (click)="addItem('row')"
+          >
+            Add Row
+          </button>
+
+          <button
+            class="btn btn-secondary"
+            *ngIf="editRowIndex != -1"
+            (click)="addItem('row')"
+          >
+            Edit Row
+          </button>
+
+          <div *ngIf="rows.length || columns.length">
+            <p>Click on the Element you want to edit</p>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-success" (click)="submitTable()">
+          Create Table
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- End Table PopUp -->
+
+<!-- Paragraph popup -->
+
+<!-- End paragraph popup -->
+
+<div
+  class="modal fade"
+  id="paragraphPopup"
+  tabindex="-1"
+  aria-labelledby="paragraphPopupLabel"
+  role="dialog"
+  aria-hidden="true"
+>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="paragraphPopupLabel">New Paragraph</h2>
+        <button
+          type="button"
+          class="btn-close"
+          data-dismiss="modal"
+          aria-label="Close"
+          (click)="paragraphPopup.hide()"
+        ></button>
+      </div>
+
+      <div class="modal-body">
+        <form [formGroup]="paragraph">
+          <textarea
+            class="form-control"
+            id="floatingTextarea2"
+            style="height: 100px"
+            formControlName="pText"
+          ></textarea>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-success" (click)="addPara()">Add</button>
+      </div>
+    </div>
+  </div>
+</div>
