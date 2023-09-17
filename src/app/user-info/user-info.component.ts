@@ -11,7 +11,7 @@ import {
   Output,
   SimpleChanges,
 } from '@angular/core';
-import { FormBuilder, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, Validators } from '@angular/forms';
 import * as $ from 'jquery';
 import { InputDataService } from '../input-data.service';
 import { Input } from '@angular/core';
@@ -23,63 +23,65 @@ declare var window: any;
   styleUrls: ['./user-info.component.scss'],
 })
 export class UserInfoComponent implements OnInit {
-  constructor(
-    private fb: FormBuilder,
-    private inputService: InputDataService
-  ) {}
-  // @Input() isOkay: boolean = false;
-  formInputBuilder = this.fb.group({
-    typeInput: ['text'],
-    nameInput: ['input1'],
-    size: [12],
+  constructor(private fb: FormBuilder) {}
+
+  //
+  ngOnInit(): void {
+    this.comboBoxPopup = new window.bootstrap.Modal(
+      document.getElementById('comboBoxPopup')
+    );
+    this.comboBoxPopup.show();
+  }
+  //
+
+  comboBoxPopup: any;
+  editComboBoxIndex = -1;
+  comboBoxForm = this.fb.group({
+    comboBoxName: [''],
+    comboBoxItems: this.fb.array([]),
   });
 
-  inputs: any = [];
-
-  formModal: any;
-  dropDownMenu = ['text', 'password', 'number'];
-  showen = false;
-
-  ngOnInit(): void {
-    this.formModal = new window.bootstrap.Modal(
-      document.getElementById('exampleModal')
-    );
-    this.formModal.show();
-
-    this.inputService.formInputData = this.formInputBuilder.controls;
-    // this.formInputBuilder.reset();
-    // this.inputs = this.inputService.getInputs();
+  //
+  public get comboBoxName(): any {
+    return this.comboBoxForm.get('comboBoxName');
+  }
+  public get comboBoxItems(): any {
+    return this.comboBoxForm.get('comboBoxItems') as FormArray;
   }
 
-  public get typeInput(): any {
-    return this.formInputBuilder.get('typeInput');
+  //
+  option: any = '';
+  comboBox: any = '';
+  addOption() {
+    if (this.editComboBoxIndex == -1) {
+      this.comboBoxItems.controls.push(this.option);
+    } else {
+      this.comboBoxItems.controls.splice(
+        this.editComboBoxIndex,
+        1,
+        this.option
+      );
+      this.editComboBoxIndex = -1;
+    }
+    this.option = '';
   }
-
-  public get nameInput(): any {
-    return this.formInputBuilder.get('nameInput');
+  optionName(event: any) {
+    this.option = event.currentTarget.value;
   }
-
-  // show popup
-  // @Output() formModalFromInput = new EventEmitter<any>();
-
-  // ngAfterViewInit(): void {
-  // }
-
-  whichType(type: any) {
-    this.typeInput.value = type;
-    this.showen = !this.showen;
-    this.inputService.formInputData = this.formInputBuilder.controls;
+  createComboBox() {
+    this.comboBoxPopup.hide();
+    this.comboBox = {
+      comboBoxName: this.comboBoxName.value,
+      comboBoxItems: this.comboBoxItems.controls,
+      fieldType: '14',
+    };
   }
-
-  appendIntoInputs(input: any) {}
-
-  onSubmit() {
-    this.formModal.hide();
-    // this.inputService.isSubmit = true;
-    this.inputService.formInputData = this.formInputBuilder.controls;
-    // console.log(this.formInputBuilder.controls);
-
-    // this.formModalFromInput.emit(this.formInputBuilder);
+  editOption(i: any) {
+    this.option = this.comboBoxItems.controls[i];
+    this.editComboBoxIndex = i;
+  }
+  deleteOption(i: any) {
+    this.comboBoxItems.controls.splice(i, i + 1);
   }
 }
 

@@ -72,7 +72,7 @@
               cdkDrag
             >
               <!-- common -->
-              <div class="form-check" *ngIf="field.typeInput">
+              <div class="form-check" *ngIf="field.fieldType == '2'">
                 <input
                   class="form-check-input"
                   type="checkbox"
@@ -89,7 +89,7 @@
               </div>
               <!-- common -->
               <!-- input -->
-              <div *ngIf="field.typeInput">
+              <div *ngIf="field.fieldType == '2'">
                 <div
                   class="form-group col-md-{{ field.sizeInput }} mx-auto"
                   *ngIf="field.typeInput != ''"
@@ -110,17 +110,12 @@
               <!-- input -->
 
               <!-- Paragraph -->
-              <div
-                class="form-floating"
-                *ngIf="field.typeInput == null && field.fieldType == null"
-              >
+              <div class="form-floating" *ngIf="field.fieldType == '5'">
                 <p>{{ field.pText }}</p>
               </div>
               <!-- Paragraph -->
               <!-- Table -->
-              <div
-                *ngIf="field.fieldType == 'checkbox' && field.tableName != ''"
-              >
+              <div *ngIf="field.fieldType == '12'">
                 <table class="table table-striped">
                   <thead>
                     <tr>
@@ -140,7 +135,7 @@
                       <td *ngFor="let cell of field.columns">
                         <input
                           type="checkbox"
-                          *ngIf="field.fieldType == 'checkbox'"
+                          *ngIf="field.fieldTableType == 'checkbox'"
                           [name]="row"
                         />
                       </td>
@@ -149,6 +144,27 @@
                 </table>
               </div>
               <!-- Table -->
+              <!-- combo Box  -->
+
+              <div class="form-group" *ngIf="field.fieldType == '14'">
+                <label
+                  [for]="field.comboBoxName + i + fieldIndex"
+                  class="form-label"
+                >
+                  {{ field.comboBoxName }}
+                </label>
+
+                <select
+                  class="form-select"
+                  [id]="field.comboBoxName + i + fieldIndex"
+                  (change)="optionChoiceSubForm($event, i, fieldIndex)"
+                >
+                  <option *ngFor="let item of field.comboBoxItems">
+                    {{ item }}
+                  </option>
+                </select>
+              </div>
+              <!-- combo Box  -->
 
               <!-- Common -->
               <button class="btn btn-primary" (click)="edit(i, fieldIndex)">
@@ -174,6 +190,13 @@
       >
         <div class="border border-5 p-5">Add New element</div>
       </div>
+      <input
+        type="submit"
+        class="btn btn-success m-3"
+        value="Submit Form"
+        *ngIf="formBuilder.valid"
+        (click)="submitForm()"
+      />
     </form>
   </div>
 </div>
@@ -413,7 +436,7 @@
             />
           </div>
           <div class="form-group mb-3">
-            <select formControlName="fieldType" class="form-select">
+            <select formControlName="fieldTableType" class="form-select">
               <option [ngValue]="item" *ngFor="let item of fieldTypes">
                 {{ item }}
                 <br />
@@ -421,10 +444,10 @@
             </select>
 
             <div class="">
-              <p *ngIf="fieldType.value == 'checkbox'" class="form-text">
+              <p *ngIf="fieldTableType.value == 'checkbox'" class="form-text">
                 This Means Multiple Choices in each row
               </p>
-              <p *ngIf="fieldType.value == 'radio'" class="form-text">
+              <p *ngIf="fieldTableType.value == 'radio'" class="form-text">
                 This Means Single Choices in each row
               </p>
             </div>
@@ -539,9 +562,6 @@
 <!-- End Table PopUp -->
 
 <!-- Paragraph popup -->
-
-<!-- End paragraph popup -->
-
 <div
   class="modal fade"
   id="paragraphPopup"
@@ -579,3 +599,82 @@
     </div>
   </div>
 </div>
+
+<!-- End paragraph popup -->
+
+<!-- ComboBoxPopup -->
+<div
+  class="modal fade"
+  id="comboBoxPopup"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="comboBoxPopupLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="comboBoxPopupLabel">New ComboBox</h2>
+        <button
+          type="button"
+          class="btn-close"
+          data-dismiss="modal"
+          aria-label="Close"
+          (click)="comboBoxPopup.hide()"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form [formGroup]="comboBoxForm">
+          <div class="form-group mb-4">
+            <input
+              type="text"
+              class="form-control"
+              placeholder="Name Your ComboxBox"
+              formControlName="comboBoxName"
+            />
+
+            {{ comboBoxName.value }}
+          </div>
+          <div class="form-group">
+            <input
+              type="text"
+              class="form-control"
+              [value]="option"
+              (change)="optionName($event)"
+            />
+            <button class="btn btn-primary my-3" (click)="addOption()">
+              Add
+            </button>
+          </div>
+          <div
+            class="form-group"
+            formArrayName="comboBoxItems"
+            *ngFor="let item of comboBoxItems.controls; let i = index"
+            (click)="editOption(i)"
+          >
+            <div class="my-3">
+              {{ item }}
+              <input
+                type="button"
+                class="btn-close special"
+                data-dismiss="modal"
+                aria-label="Close"
+                (click)="deleteOption(i)"
+              />
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer form-group">
+        <button
+          type="submit"
+          class="btn btn-success"
+          (click)="createComboBox()"
+        >
+          Create
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- End of ComboBoxPopup -->

@@ -1,72 +1,90 @@
-<!-- popup -->
-
+<!-- ComboBoxPopup -->
 <div
   class="modal fade"
-  id="exampleModal"
+  id="comboBoxPopup"
   tabindex="-1"
   role="dialog"
-  aria-labelledby="exampleModalLabel"
+  aria-labelledby="comboBoxPopupLabel"
   aria-hidden="true"
 >
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 class="modal-title" id="exampleModalLabel">New Input</h2>
+        <h2 class="modal-title" id="comboBoxPopupLabel">New ComboBox</h2>
         <button
           type="button"
           class="btn-close"
           data-dismiss="modal"
           aria-label="Close"
-          (click)="formModal.hide()"
+          (click)="comboBoxPopup.hide()"
         >
           <!-- <span aria-hidden="true">&times;</span> -->
         </button>
       </div>
       <div class="modal-body">
-        <form [formGroup]="formInputBuilder">
-          <div class="form-group">
-            <div mdbDropdown class="dropdown">
-              <button
-                class="btn btn-secondary dropdown-toggle"
-                type="button"
-                id="dropdownMenuButton"
-                data-toggle="dropdown"
-                aria-haspopup="true"
-                aria-expanded="false"
-                mdbDropdownToggle
-                (click)="showen = !showen"
-              >
-                {{ typeInput.value }}
-              </button>
-
-              <ul mdbDropdownMenu class="dropdown-menu" [class.show]="showen">
-                <li
-                  class="dropdown-item"
-                  *ngFor="let item of dropDownMenu"
-                  (click)="whichType(item)"
-                >
-                  {{ item }}
-                  <div class="dropdown-divider"></div>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="nameInput" class="col-form-label">Name:</label>
+        <form [formGroup]="comboBoxForm">
+          <div class="form-group mb-4">
             <input
               type="text"
               class="form-control"
-              id="typeInput"
-              formControlName="nameInput"
+              placeholder="Name Your ComboxBox"
+              formControlName="comboBoxName"
             />
+
+            {{ comboBoxName.value }}
+          </div>
+          <div class="form-group">
+            <input
+              type="text"
+              class="form-control"
+              [value]="option"
+              (change)="optionName($event)"
+            />
+            <button class="btn btn-primary my-3" (click)="addOption()">
+              Add
+            </button>
+          </div>
+          <div
+            class="form-group"
+            formArrayName="comboBoxItems"
+            *ngFor="let item of comboBoxItems.controls; let i = index"
+            (click)="editOption(i)"
+          >
+            <div class="my-3">
+              {{ item }}
+              <input
+                type="button"
+                class="btn-close special"
+                data-dismiss="modal"
+                aria-label="Close"
+                (click)="deleteOption(i)"
+              />
+            </div>
           </div>
         </form>
       </div>
       <div class="modal-footer form-group">
-        <button type="submit" (click)="onSubmit()" class="btn btn-primary">
-          Send message
+        <button
+          type="submit"
+          class="btn btn-success"
+          (click)="createComboBox()"
+        >
+          Create
         </button>
       </div>
     </div>
   </div>
+</div>
+<!-- End of ComboBoxPopup -->
+
+<div class="container">
+  <label for="GFGDataList" class="form-label">
+    {{ comboBox.comboBoxName }}
+  </label>
+
+  <select class="form-select" id="GFGDataList" (change)="optionName($event)">
+    <option *ngFor="let item of comboBox.comboBoxItems">
+      {{ item }}
+    </option>
+  </select>
 </div>

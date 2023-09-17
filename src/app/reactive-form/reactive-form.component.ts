@@ -16,8 +16,10 @@ import {
   moveItemInArray,
   transferArrayItem,
 } from '@angular/cdk/drag-drop';
-import { InputDataService } from '../input-data.service';
-import { KeyValuePipe } from '@angular/common';
+import { Ischema } from '../interfaces/schema';
+import { IsubForm } from '../interfaces/subForm';
+import { IformData } from '../interfaces/formData';
+import { CreateFormService } from '../create-form.service';
 
 declare var window: any;
 @Component({
@@ -26,7 +28,7 @@ declare var window: any;
   styleUrls: ['./reactive-form.component.scss'],
 })
 export class ReactiveFormComponent implements OnInit {
-  constructor(private fb: FormBuilder) {}
+  constructor(private fb: FormBuilder, private createForm: CreateFormService) {}
 
   ngOnInit(): void {
     this.formInput = new window.bootstrap.Modal(
@@ -44,24 +46,178 @@ export class ReactiveFormComponent implements OnInit {
     this.paragraphPopup = new window.bootstrap.Modal(
       document.getElementById('paragraphPopup')
     );
+    this.comboBoxPopup = new window.bootstrap.Modal(
+      document.getElementById('comboBoxPopup')
+    );
   }
+
+  // comboBox
+
+  comboBoxPopup: any;
+  editComboBoxIndex = -1;
+  comboBoxForm = this.fb.group({
+    comboBoxName: [''],
+    comboBoxItems: this.fb.array([]),
+  });
+
+  //
+  public get comboBoxName(): any {
+    return this.comboBoxForm.get('comboBoxName');
+  }
+  public get comboBoxItems(): any {
+    return this.comboBoxForm.get('comboBoxItems') as FormArray;
+  }
+
+  //
+  option: any = '';
+  comboBox: any = '';
+  editOptionIndex: any = -1;
+  addOption() {
+    if (this.editOptionIndex == -1) {
+      this.comboBoxItems.controls.push(this.option);
+    } else if (this.editOptionIndex != -1) {
+      this.comboBoxItems.controls.splice(this.editOptionIndex, 1, this.option);
+      this.editOptionIndex = -1;
+    }
+    this.option = '';
+  }
+  optionName(event: any) {
+    this.option = event.currentTarget.value;
+  }
+
+  //
+  optionChoiceSubForm(event: any, i: any, fieldId: any) {
+    this.dives[i].fields[fieldId].comboBoxSelected = event.currentTarget.value;
+    // console.log(this.dives[i].fields[fieldId]);
+  }
+  createComboBox() {
+    this.comboBoxPopup.hide();
+    this.comboBox = {
+      comboBoxName: this.comboBoxName.value,
+      comboBoxItems: this.comboBoxItems.controls,
+      fieldType: '14',
+      comboBoxSelected: this.comboBoxItems.controls[0],
+    };
+
+    this.comboBoxItems.controls = [];
+    this.comboBoxForm.patchValue({
+      comboBoxName: '',
+    });
+
+    if (this.editComboBoxIndex != -1 && this.editDivIndex != -1) {
+      // editting
+      this.dives[this.editDivIndex].fields[this.editComboBoxIndex] =
+        this.comboBox;
+
+      this.comboBox = '';
+      this.editDivIndex = -1;
+      this.editComboBoxIndex = -1;
+    } else this.addNewElementPopUp.show();
+  }
+  editOption(i: any) {
+    this.option = this.comboBoxItems.controls[i];
+    this.editOptionIndex = i;
+  }
+  deleteOption(i: any) {
+    this.comboBoxItems.controls.splice(i, i + 1);
+  }
+
+  // end comboBox
+  // input
   formBuilder = this.fb.group({
     formName: ['', Validators.required],
     elements: this.fb.array([]),
   });
 
-  public get elements() {
+  public get elements(): any {
     return this.formBuilder.get('elements') as FormArray;
   }
+  public get formName(): any {
+    return this.formBuilder.get('formName');
+  }
 
-  inputs: any = [];
-
-  orderList = ['Input', 'Table', 'Paragraph'].sort();
+  orderList = ['Input', 'Table', 'Paragraph', 'ComboBox'].sort();
 
   event: any;
   CdkDragDrop: any;
 
   newElement: any = '';
+  //
+
+  schema: Ischema;
+  submitForm() {
+    var subForms = [];
+    for (let index = 0; index < this.dives.length; index++) {
+      var subForm: IsubForm;
+      var allSubFormData = [];
+
+      for (
+        let fieldId = 0;
+        fieldId < this.dives[index].fields.length;
+        fieldId++
+      ) {
+        var formData: IformData;
+        var isMandatory = true;
+        var fieldQuestion,
+          size = 12;
+        //
+        if (this.dives[index].fields[fieldId].fieldType == '2') {
+          isMandatory = this.dives[index].fields[fieldId].required;
+          fieldQuestion = this.dives[index].fields[fieldId].nameInput;
+          size = this.dives[index].fields[fieldId].sizeInput;
+        }
+        //
+        else if (this.dives[index].fields[fieldId].fieldType == '14') {
+          fieldQuestion = this.dives[index].fields[fieldId].comboBoxName;
+        }
+        //
+        else if (this.dives[index].fields[fieldId].fieldType == '12') {
+          fieldQuestion = this.dives[index].fields[fieldId].tableName;
+        }
+        //
+        else if (this.dives[index].fields[fieldId].fieldType == '5') {
+          fieldQuestion = this.dives[index].fields[fieldId].pText;
+        }
+
+        //
+        formData = {
+          subFormId: fieldId,
+          fieldType: this.dives[index].fields[fieldId].fieldType,
+          isMandatory: isMandatory,
+          fieldQuestion: String(fieldQuestion),
+          order: fieldId + 1,
+          size: size,
+          comboBoxItems: this.dives[index].fields[fieldId].comboBoxItems,
+        };
+        allSubFormData.push(formData);
+      }
+      //
+      subForm = {
+        name: String(this.dives[index].subFormName),
+        order: index + 1,
+        size: 12,
+        mainFormId: 0,
+        formData: allSubFormData,
+      };
+      //
+      subForms.push(subForm);
+    }
+
+    //
+    var schemaSubmit: Ischema = {
+      name: this.formName.value,
+      subForms: subForms,
+    };
+
+    //
+    this.schema = schemaSubmit;
+
+    console.log(this.schema);
+    this.createForm.CreateForm(this.schema).subscribe((data) => {
+      console.log(data);
+    });
+  }
+  //
   // insert new element in (Add New Element)
   onDropOne(event: CdkDragDrop<any>) {
     if (event.previousContainer === event.container) {
@@ -89,9 +245,14 @@ export class ReactiveFormComponent implements OnInit {
     if (event.container.data[0] == 'Input') this.formInput.show();
     else if (event.container.data[0] == 'Table') {
       this.tablePopUp.show();
-    } else if (event.container.data[0] == 'Dropdown') {
     } else if (event.container.data[0] == 'Paragraph') {
       this.paragraphPopup.show();
+    } else if (event.container.data[0] == 'ComboBox') {
+      this.comboBoxItems.controls = [];
+      this.comboBoxForm.patchValue({
+        comboBoxName: '',
+      });
+      this.comboBoxPopup.show();
     }
   }
 
@@ -147,7 +308,8 @@ export class ReactiveFormComponent implements OnInit {
       });
 
       var size = this.dives.length;
-      console.log(this.newElement);
+
+      //
 
       if (this.newElement == 'Input') {
         this.dives[size - 1].fields.push(this.input);
@@ -156,16 +318,29 @@ export class ReactiveFormComponent implements OnInit {
         this.dives[size - 1].fields.push(this.table);
 
         this.table = '';
-      } else if (this.newElement == 'Dropdown') {
       } else if (this.newElement == 'Paragraph') {
-        this.dives[size - 1].fields.push({ pText: this.pText.value });
+        this.dives[size - 1].fields.push({
+          pText: this.pText.value,
+          fieldType: '5',
+        });
         this.paragraph.reset();
+      } else if (this.newElement == 'ComboBox') {
+        this.dives[size - 1].fields.push(this.comboBox);
+        this.comboBox = '';
+        this.comboBoxItems.controls = [];
+        this.comboBoxForm.patchValue({
+          comboBoxName: '',
+        });
       }
+
+      //
     } else if (this.editDivIndex != -1) {
       this.dives[this.editDivIndex].subFormName = this.subFormName.value;
       this.dives[this.editDivIndex].subFormWidth = this.subFormWidth.value;
       this.editDivIndex = -1;
     }
+
+    //
     this.subFormData.patchValue({
       subFormName: '',
       subFormWidth: '100',
@@ -179,7 +354,7 @@ export class ReactiveFormComponent implements OnInit {
 
   doubleClickEdit(divId: any) {
     this.editDivIndex = divId;
-    console.log('welcome' + ' ' + divId);
+    // console.log('welcome' + ' ' + divId);
     var div = this.dives[divId];
     this.subFormData.patchValue({
       subFormName: div.subFormName,
@@ -225,6 +400,7 @@ export class ReactiveFormComponent implements OnInit {
       nameInput: this.nameInput.value,
       sizeInput: this.sizeInput.value,
       required: this.required.value,
+      fieldType: '2',
     };
 
     this.formInput.hide();
@@ -294,9 +470,18 @@ export class ReactiveFormComponent implements OnInit {
     } else if (this.newElement == 'Paragraph') {
       this.dives[this.subFormSelectId.value].fields.push({
         pText: this.pText.value,
+        fieldType: '5',
       });
       this.paragraph.reset();
+    } else if (this.newElement == 'ComboBox') {
+      this.dives[this.subFormSelectId.value].fields.push(this.comboBox);
+      this.comboBoxItems.controls = [];
+      this.comboBoxForm.patchValue({
+        comboBoxName: '',
+      });
     }
+
+    //
     this.addNewElementForm.patchValue({
       subFormSelectId: '0',
     });
@@ -311,7 +496,7 @@ export class ReactiveFormComponent implements OnInit {
     tableName: [''],
     columns: this.fb.array([]),
     rows: this.fb.array([]),
-    fieldType: ['checkbox'],
+    fieldTableType: ['checkbox'],
   });
 
   rowName: any = '';
@@ -329,8 +514,8 @@ export class ReactiveFormComponent implements OnInit {
   public get rows() {
     return this.formTablePopUp.get('rows') as FormArray;
   }
-  public get fieldType(): any {
-    return this.formTablePopUp.get('fieldType');
+  public get fieldTableType(): any {
+    return this.formTablePopUp.get('fieldTableType');
   }
 
   valuechange(event: any, arrayName: any) {
@@ -385,15 +570,16 @@ export class ReactiveFormComponent implements OnInit {
   submitTable() {
     this.table = {
       tableName: this.tableName.value,
-      fieldType: this.fieldType.value,
+      fieldTableType: this.fieldTableType.value,
       columns: this.columns.controls,
       rows: this.rows.controls,
+      fieldType: '12',
     };
     this.columns.controls = [];
     this.rows.controls = [];
     this.formTablePopUp.patchValue({
       tableName: '',
-      fieldType: 'checkbox',
+      fieldTableType: 'checkbox',
     });
     this.tablePopUp.hide();
 
@@ -421,7 +607,7 @@ export class ReactiveFormComponent implements OnInit {
   }
 
   edit(divId: any, fieldId: any) {
-    if (this.dives[divId].fields[fieldId].typeInput) {
+    if (this.dives[divId].fields[fieldId].fieldType == '2') {
       var editInput = this.dives[divId].fields[fieldId];
 
       this.popupInput.setValue({
@@ -433,7 +619,7 @@ export class ReactiveFormComponent implements OnInit {
 
       this.formInput.show();
       this.editInputIndex = fieldId;
-    } else if (this.dives[divId].fields[fieldId].fieldType) {
+    } else if (this.dives[divId].fields[fieldId].fieldType == '12') {
       var editTable = this.dives[divId].fields[fieldId];
       //
 
@@ -441,19 +627,34 @@ export class ReactiveFormComponent implements OnInit {
       this.rows.controls = editTable.rows;
       this.formTablePopUp.patchValue({
         tableName: editTable.tableName,
-        fieldType: editTable.fieldType,
+        fieldTableType: editTable.fieldTableType,
       });
       console.log(this.formTablePopUp.controls);
 
       //
       this.tablePopUp.show();
       this.editTableIndex = fieldId;
-    } else if (this.dives[divId].fields[fieldId].pText) {
+
+      //
+    } else if (this.dives[divId].fields[fieldId].fieldType == '5') {
       this.paragraph.patchValue({
         pText: this.dives[divId].fields[fieldId].pText,
       });
+      //
       this.editParaIndex = fieldId;
       this.paragraphPopup.show();
+      //
+      //
+    } else if (this.dives[divId].fields[fieldId].fieldType == '14') {
+      var cmBox = this.dives[divId].fields[fieldId];
+
+      this.comboBoxItems.controls = cmBox.comboBoxItems;
+      this.comboBoxForm.patchValue({
+        comboBoxName: cmBox.comboBoxName,
+      });
+      //
+      this.editComboBoxIndex = fieldId;
+      this.comboBoxPopup.show();
     }
     this.editDivIndex = divId;
   }
