@@ -1,0 +1,85 @@
+{
+  "posts": [
+    {
+      "id": 1,
+      "title": "json-server",
+      "author": "typicode"
+    }
+  ],
+  "comments": [
+    {
+      "id": 1,
+      "body": "some comment",
+      "postId": 1
+    }
+  ],
+  "tables": [
+    {
+      "tableName": "table1",
+      "mainformId": 54,
+      "columns": [
+        "col1",
+        "col2"
+      ],
+      "rows": [
+        "row1",
+        "row2"
+      ],
+      "fieldtype": "12",
+      "fieldTableType": "checkBox",
+      "order": 0,
+      "subFormId": 0,
+      "id": 1
+    },
+    {
+      "tableName": "table12",
+      "mainformId": 55,
+      "columns": [
+        "col3",
+        "col5"
+      ],
+      "rows": [
+        "row6",
+        "row7"
+      ],
+      "fieldtype": "12",
+      "fieldTableType": "checkBox",
+      "order": 0,
+      "subFormId": 0,
+      "id": 2
+    },
+    {
+      "tableName": "table3",
+      "mainformId": 56,
+      "columns": [
+        "col1"
+      ],
+      "rows": [
+        "row1"
+      ],
+      "fieldtype": "12",
+      "fieldTableType": "checkBox",
+      "order": 0,
+      "subFormId": 0,
+      "id": 3
+    },
+    {
+      "tableName": "table4",
+      "mainformId": 56,
+      "columns": [
+        "col2"
+      ],
+      "rows": [
+        "row2"
+      ],
+      "fieldtype": "12",
+      "fieldTableType": "checkBox",
+      "order": 1,
+      "subFormId": 0,
+      "id": 4
+    }
+  ],
+  "profile": {
+    "name": "typicode"
+  }
+}

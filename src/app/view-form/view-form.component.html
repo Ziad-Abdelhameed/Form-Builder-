@@ -34,6 +34,18 @@
       <div class="form-floating" *ngIf="field.fieldtype == '5'">
         {{ field.fieldQuestion }}
       </div>
+      <div class="form-floating" *ngIf="field.fieldtype == '7'">
+        <h1>{{ field.fieldQuestion }}</h1>
+      </div>
+      <div class="form-floating" *ngIf="field.fieldtype == '8'">
+        <h2>{{ field.fieldQuestion }}</h2>
+      </div>
+      <div class="form-floating" *ngIf="field.fieldtype == '9'">
+        <h3>{{ field.fieldQuestion }}</h3>
+      </div>
+      <div class="form-floating" *ngIf="field.fieldtype == '10'">
+        <h4>{{ field.fieldQuestion }}</h4>
+      </div>
       <!-- Paragraph -->
 
       <!-- Table -->

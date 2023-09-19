@@ -106,6 +106,19 @@
 
               <!-- input -->
 
+              <div class="form-floating" *ngIf="field.fieldType == '7'">
+                <h1>{{ field.fieldQuestion }}</h1>
+              </div>
+              <div class="form-floating" *ngIf="field.fieldType == '8'">
+                <h2>{{ field.fieldQuestion }}</h2>
+              </div>
+              <div class="form-floating" *ngIf="field.fieldType == '9'">
+                <h3>{{ field.fieldQuestion }}</h3>
+              </div>
+              <div class="form-floating" *ngIf="field.fieldType == '10'">
+                <h4>{{ field.fieldQuestion }}</h4>
+              </div>
+
               <!-- Paragraph -->
               <div class="form-floating" *ngIf="field.fieldType == '5'">
                 <p>{{ field.fieldQuestion }}</p>
@@ -570,7 +583,7 @@
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 class="modal-title" id="paragraphPopupLabel">New Paragraph</h2>
+        <h2 class="modal-title" id="paragraphPopupLabel">New Text</h2>
         <button
           type="button"
           class="btn-close"

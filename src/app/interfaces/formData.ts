@@ -4,6 +4,6 @@ export interface IformData {
   isMandatory: boolean;
   size: number;
   order: number;
-  fieldType: number;
+  fieldtype: number;
   comboBoxItems: string[];
 }

@@ -5,6 +5,8 @@ import { Ischema } from '../interfaces/schema';
 import { IsubForm } from '../interfaces/subForm';
 import { FormBuilder, Validators } from '@angular/forms';
 import { Route, Router } from '@angular/router';
+import { TableService } from '../table.service';
+import { Itable } from '../interfaces/table';
 
 @Component({
   selector: 'app-view-all-forms',
@@ -14,6 +16,7 @@ import { Route, Router } from '@angular/router';
 export class ViewAllFormsComponent implements OnInit {
   constructor(
     private service: CreateFormService,
+    private tableService: TableService,
     private fb: FormBuilder,
     private router: Router
   ) {}
@@ -28,13 +31,31 @@ export class ViewAllFormsComponent implements OnInit {
     return this.form.get('formId');
   }
 
+  table: Itable;
   viewForm() {
     this.router.navigate(['/viewForm', this.formId.value]);
   }
   editForm() {
+    this.tableService.getTable().subscribe((dta) => {
+      console.log('Edit Table isa');
+      this.table = dta;
+      this.table.mainformId = this.lastFormCreated;
+
+      this.tableService.mainFormEdit(this.table).subscribe((dta) => {});
+    });
     this.router.navigate(['/createForm', this.formId.value]);
   }
   deleteForm() {
+    //
+    this.tableService.getTable().subscribe((dta) => {
+      console.log('delete Table isa');
+      this.table = dta;
+      this.table.mainformId = this.lastFormCreated;
+
+      this.tableService.mainFormEdit(this.table).subscribe((dta) => {});
+    });
+    //
+    //
     this.service.DeleteForm(this.formId.value).subscribe((dta) => {
       console.log('deleted');
       this.forms = this.service.ViewAllForms().subscribe((dta) => {

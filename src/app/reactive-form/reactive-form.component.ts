@@ -22,6 +22,8 @@ import { IformData } from '../interfaces/formData';
 import { CreateFormService } from '../create-form.service';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 import { IviewForm } from '../interfaces/viewForm';
+import { Itable } from '../interfaces/table';
+import { TableService } from '../table.service';
 
 declare var window: any;
 @Component({
@@ -33,6 +35,7 @@ export class ReactiveFormComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private createForm: CreateFormService,
+    private tableService: TableService,
     private router: Router,
     private activatedRoute: ActivatedRoute
   ) {}
@@ -260,7 +263,16 @@ export class ReactiveFormComponent implements OnInit {
     return this.formBuilder.get('formName');
   }
 
-  orderList = ['Input', 'Table', 'Paragraph', 'ComboBox'].sort();
+  orderList = [
+    'Input',
+    'Table',
+    'Paragraph',
+    'ComboBox',
+    'H1',
+    'H2',
+    'H3',
+    'H4',
+  ].sort();
 
   event: any;
   CdkDragDrop: any;
@@ -282,31 +294,38 @@ export class ReactiveFormComponent implements OnInit {
       ) {
         var formData: IformData;
         var isMandatory = true;
-        var fieldQuestion,
+        var fieldQuestion = this.dives[index].fields[fieldId].fieldQuestion,
           size = 12;
         //
         if (this.dives[index].fields[fieldId].fieldType == '2') {
           isMandatory = this.dives[index].fields[fieldId].isMandatory;
-          fieldQuestion = this.dives[index].fields[fieldId].fieldQuestion;
           size = this.dives[index].fields[fieldId].size;
         }
         //
         else if (this.dives[index].fields[fieldId].fieldType == '14') {
-          fieldQuestion = this.dives[index].fields[fieldId].fieldQuestion;
         }
         //
         else if (this.dives[index].fields[fieldId].fieldType == '12') {
+          var table = this.dives[index].fields[fieldId];
+          var tableField: Itable = {
+            tableName: table.tableName,
+            mainformId: 0,
+            columns: table.columns,
+            rows: table.rows,
+            fieldtype: '12',
+            fieldTableType: 'checkBox',
+            order: fieldId,
+            subFormId: index,
+          };
+          this.tableService.createTable(tableField).subscribe((dta) => {});
+
           fieldQuestion = this.dives[index].fields[fieldId].tableName;
         }
         //
-        else if (this.dives[index].fields[fieldId].fieldType == '5') {
-          fieldQuestion = this.dives[index].fields[fieldId].fieldQuestion;
-        }
-
         //
         formData = {
           subFormId: fieldId,
-          fieldType: this.dives[index].fields[fieldId].fieldType,
+          fieldtype: this.dives[index].fields[fieldId].fieldType,
           isMandatory: isMandatory,
           fieldQuestion: String(fieldQuestion),
           order: fieldId + 1,
@@ -389,14 +408,14 @@ export class ReactiveFormComponent implements OnInit {
     if (event.container.data[0] == 'Input') this.formInput.show();
     else if (event.container.data[0] == 'Table') {
       this.tablePopUp.show();
-    } else if (event.container.data[0] == 'Paragraph') {
-      this.paragraphPopup.show();
     } else if (event.container.data[0] == 'ComboBox') {
       this.comboBoxItems.controls = [];
       this.comboBoxForm.patchValue({
         comboBoxName: '',
       });
       this.comboBoxPopup.show();
+    } else {
+      this.paragraphPopup.show();
     }
   }
 
@@ -470,7 +489,43 @@ export class ReactiveFormComponent implements OnInit {
           size: 12,
           order: 0,
         });
-        this.paragraph.reset();
+        this.paragraph.patchValue({ pText: '' });
+      } else if (this.newElement == 'H1') {
+        this.dives[size - 1].fields.push({
+          fieldQuestion: this.pText.value,
+          fieldType: '7',
+          isMandatory: true,
+          size: 12,
+          order: 0,
+        });
+        this.paragraph.patchValue({ pText: '' });
+      } else if (this.newElement == 'H2') {
+        this.dives[size - 1].fields.push({
+          fieldQuestion: this.pText.value,
+          fieldType: '8',
+          isMandatory: true,
+          size: 12,
+          order: 0,
+        });
+        this.paragraph.patchValue({ pText: '' });
+      } else if (this.newElement == 'H3') {
+        this.dives[size - 1].fields.push({
+          fieldQuestion: this.pText.value,
+          fieldType: '9',
+          isMandatory: true,
+          size: 12,
+          order: 0,
+        });
+        this.paragraph.patchValue({ pText: '' });
+      } else if (this.newElement == 'H4') {
+        this.dives[size - 1].fields.push({
+          fieldQuestion: this.pText.value,
+          fieldType: '10',
+          isMandatory: true,
+          size: 12,
+          order: 0,
+        });
+        this.paragraph.patchValue({ pText: '' });
       } else if (this.newElement == 'ComboBox') {
         this.dives[size - 1].fields.push(this.comboBox);
         this.comboBox = '';
@@ -569,6 +624,7 @@ export class ReactiveFormComponent implements OnInit {
   // End of popup of Input
 
   // paragraph
+  fieldTypePara: any;
   editParaIndex: any = -1;
   paragraphPopup: any;
   paragraph = this.fb.group({
@@ -578,11 +634,13 @@ export class ReactiveFormComponent implements OnInit {
   public get pText(): any {
     return this.paragraph.get('pText');
   }
+
   addPara() {
     this.paragraphPopup.hide();
     if (this.editParaIndex != -1 && this.editDivIndex != -1) {
       this.dives[this.editDivIndex].fields[this.editParaIndex].fieldQuestion =
         this.pText.value;
+
       this.editParaIndex = -1;
       this.editDivIndex = -1;
       this.paragraph.patchValue({ pText: '' });
@@ -622,7 +680,43 @@ export class ReactiveFormComponent implements OnInit {
         size: 12,
         order: 0,
       });
-      this.paragraph.reset();
+      this.paragraph.patchValue({ pText: '' });
+    } else if (this.newElement == 'H1') {
+      this.dives[this.subFormSelectId.value].fields.push({
+        fieldQuestion: this.pText.value,
+        fieldType: '7',
+        isMandatory: true,
+        size: 12,
+        order: 0,
+      });
+      this.paragraph.patchValue({ pText: '' });
+    } else if (this.newElement == 'H2') {
+      this.dives[this.subFormSelectId.value].fields.push({
+        fieldQuestion: this.pText.value,
+        fieldType: '8',
+        isMandatory: true,
+        size: 12,
+        order: 0,
+      });
+      this.paragraph.patchValue({ pText: '' });
+    } else if (this.newElement == 'H3') {
+      this.dives[this.subFormSelectId.value].fields.push({
+        fieldQuestion: this.pText.value,
+        fieldType: '9',
+        isMandatory: true,
+        size: 12,
+        order: 0,
+      });
+      this.paragraph.patchValue({ pText: '' });
+    } else if (this.newElement == 'H4') {
+      this.dives[this.subFormSelectId.value].fields.push({
+        fieldQuestion: this.pText.value,
+        fieldType: '10',
+        isMandatory: true,
+        size: 12,
+        order: 0,
+      });
+      this.paragraph.patchValue({ pText: '' });
     } else if (this.newElement == 'ComboBox') {
       this.dives[this.subFormSelectId.value].fields.push(this.comboBox);
       this.comboBoxItems.controls = [];
@@ -785,7 +879,13 @@ export class ReactiveFormComponent implements OnInit {
       this.editTableIndex = fieldId;
 
       //
-    } else if (this.dives[divId].fields[fieldId].fieldType == '5') {
+    } else if (
+      this.dives[divId].fields[fieldId].fieldType == '5' ||
+      this.dives[divId].fields[fieldId].fieldType == '8' ||
+      this.dives[divId].fields[fieldId].fieldType == '7' ||
+      this.dives[divId].fields[fieldId].fieldType == '9' ||
+      this.dives[divId].fields[fieldId].fieldType == '10'
+    ) {
       this.paragraph.patchValue({
         pText: this.dives[divId].fields[fieldId].fieldQuestion,
       });
