@@ -20,6 +20,8 @@ import { Ischema } from '../interfaces/schema';
 import { IsubForm } from '../interfaces/subForm';
 import { IformData } from '../interfaces/formData';
 import { CreateFormService } from '../create-form.service';
+import { ActivatedRoute, ParamMap, Router } from '@angular/router';
+import { IviewForm } from '../interfaces/viewForm';
 
 declare var window: any;
 @Component({
@@ -28,9 +30,129 @@ declare var window: any;
   styleUrls: ['./reactive-form.component.scss'],
 })
 export class ReactiveFormComponent implements OnInit {
-  constructor(private fb: FormBuilder, private createForm: CreateFormService) {}
+  constructor(
+    private fb: FormBuilder,
+    private createForm: CreateFormService,
+    private router: Router,
+    private activatedRoute: ActivatedRoute
+  ) {}
+
+  editFormId: any = -1;
+  editFormSchema: IviewForm = {
+    data: {
+      id: 0,
+      name: '',
+      isDeleted: false,
+      dateOfCreation: '',
+      numberOfResponses: 0,
+      subforms: [
+        {
+          id: 0,
+          name: '',
+          mainFormId: 0,
+          size: 0,
+          order: 0,
+          formData: [
+            {
+              id: 0,
+              subFormId: 0,
+              fieldQuestion: '',
+              isMandatory: true,
+              size: 12,
+              order: 0,
+              fieldtype: 0,
+              comboBoxItems: [],
+            },
+          ],
+        },
+      ],
+    },
+    message: '',
+    errorList: [],
+  };
+  realSchema: any = {
+    id: 0,
+    name: '',
+    isDeleted: false,
+    dateOfCreation: '',
+    numberOfResponses: 0,
+    subforms: [
+      {
+        id: 0,
+        name: '',
+        mainFormId: 0,
+        size: 0,
+        order: 0,
+        formData: [
+          {
+            id: 0,
+            subFormId: 0,
+            fieldQuestion: '',
+            isMandatory: true,
+            size: 0,
+            order: 0,
+            fieldtype: 0,
+            comboBoxItems: [],
+          },
+        ],
+      },
+    ],
+  };
+
+  // comboBoxItems: null;
+  // fieldQuestion: 'inputziad';
+  // fieldtype: 2;
+  // id: 55;
+  // isMandatory: true;
+  // order: 1;
+  // size: 12;
+  // subFormId: 43;
+
+  returnSchema(schema: any) {
+    this.realSchema = schema;
+
+    console.log(this.realSchema);
+
+    this.formBuilder.patchValue({
+      formName: this.realSchema.name,
+    });
+
+    console.log(this.realSchema.subforms);
+    for (let subform of this.realSchema.subforms) {
+      var formData: any = [];
+      for (let field of subform.formData) {
+        var formDataOnly: any = {
+          fieldQuestion: field.fieldQuestion,
+          fieldType: field.fieldtype,
+          comboBoxItems: field.comboBoxItems,
+          size: field.size,
+          isMandatory: field.isMandatory,
+        };
+        formData.push(formDataOnly);
+      }
+      this.dives.push({
+        subFormName: subform.name,
+        subFormWidth: Number((Number(subform.size) / 12) * 100),
+        fields: formData,
+      });
+    }
+    console.log(this.dives);
+  }
 
   ngOnInit(): void {
+    this.activatedRoute.paramMap.subscribe((params: ParamMap) => {
+      this.editFormId = params.get('id');
+    });
+
+    if (this.editFormId != null) {
+      console.log(this.editFormId);
+
+      this.createForm.ViewForm(this.editFormId).subscribe((dta) => {
+        this.editFormSchema = dta;
+        this.returnSchema(this.editFormSchema.data);
+      });
+    }
+    //
     this.formInput = new window.bootstrap.Modal(
       document.getElementById('exampleModal')
     );
@@ -93,10 +215,12 @@ export class ReactiveFormComponent implements OnInit {
   createComboBox() {
     this.comboBoxPopup.hide();
     this.comboBox = {
-      comboBoxName: this.comboBoxName.value,
+      fieldQuestion: this.comboBoxName.value,
       comboBoxItems: this.comboBoxItems.controls,
       fieldType: '14',
-      comboBoxSelected: this.comboBoxItems.controls[0],
+      isMandatory: true,
+      size: 12,
+      order: 0,
     };
 
     this.comboBoxItems.controls = [];
@@ -162,13 +286,13 @@ export class ReactiveFormComponent implements OnInit {
           size = 12;
         //
         if (this.dives[index].fields[fieldId].fieldType == '2') {
-          isMandatory = this.dives[index].fields[fieldId].required;
-          fieldQuestion = this.dives[index].fields[fieldId].nameInput;
-          size = this.dives[index].fields[fieldId].sizeInput;
+          isMandatory = this.dives[index].fields[fieldId].isMandatory;
+          fieldQuestion = this.dives[index].fields[fieldId].fieldQuestion;
+          size = this.dives[index].fields[fieldId].size;
         }
         //
         else if (this.dives[index].fields[fieldId].fieldType == '14') {
-          fieldQuestion = this.dives[index].fields[fieldId].comboBoxName;
+          fieldQuestion = this.dives[index].fields[fieldId].fieldQuestion;
         }
         //
         else if (this.dives[index].fields[fieldId].fieldType == '12') {
@@ -176,7 +300,7 @@ export class ReactiveFormComponent implements OnInit {
         }
         //
         else if (this.dives[index].fields[fieldId].fieldType == '5') {
-          fieldQuestion = this.dives[index].fields[fieldId].pText;
+          fieldQuestion = this.dives[index].fields[fieldId].fieldQuestion;
         }
 
         //
@@ -195,10 +319,12 @@ export class ReactiveFormComponent implements OnInit {
       subForm = {
         name: String(this.dives[index].subFormName),
         order: index + 1,
-        size: 12,
+        size: Number((Number(this.dives[index].subFormWidth) / 100) * 12),
         mainFormId: 0,
         formData: allSubFormData,
       };
+      // console.log(allSubFormData);
+
       //
       subForms.push(subForm);
     }
@@ -213,9 +339,27 @@ export class ReactiveFormComponent implements OnInit {
     this.schema = schemaSubmit;
 
     console.log(this.schema);
-    this.createForm.CreateForm(this.schema).subscribe((data) => {
-      console.log(data);
-    });
+    if (this.editFormId != null) {
+      console.log('this.editFormId');
+
+      console.log(this.editFormId);
+
+      this.createForm.DeleteForm(this.editFormId).subscribe((dta) => {
+        console.log('deleted from reactive');
+        console.log(dta);
+      });
+      this.createForm.CreateForm(this.schema).subscribe((dta) => {
+        console.log(dta);
+        console.log('Edited');
+
+        this.router.navigate(['viewAllForms']);
+      });
+    } else {
+      this.createForm.CreateForm(this.schema).subscribe((data) => {
+        console.log(data);
+        this.router.navigate(['viewAllForms']);
+      });
+    }
   }
   //
   // insert new element in (Add New Element)
@@ -320,8 +464,11 @@ export class ReactiveFormComponent implements OnInit {
         this.table = '';
       } else if (this.newElement == 'Paragraph') {
         this.dives[size - 1].fields.push({
-          pText: this.pText.value,
+          fieldQuestion: this.pText.value,
           fieldType: '5',
+          isMandatory: true,
+          size: 12,
+          order: 0,
         });
         this.paragraph.reset();
       } else if (this.newElement == 'ComboBox') {
@@ -368,13 +515,13 @@ export class ReactiveFormComponent implements OnInit {
 
   popupInput = this.fb.group({
     typeInput: ['text'],
-    nameInput: ['input'],
-    sizeInput: ['12'],
-    required: [true],
+    fieldQuestion: ['input'],
+    size: ['12'],
+    isMandatory: [true],
   });
 
   formInput: any;
-  dropDownMenu = ['text', 'password', 'number', 'email', 'tel', 'checkbox'];
+  dropDownMenu = ['text'];
   showen = false;
   editInputIndex: number = -1;
   editDivIndex: number = -1;
@@ -383,23 +530,23 @@ export class ReactiveFormComponent implements OnInit {
     return this.popupInput.get('typeInput');
   }
 
-  public get nameInput(): any {
-    return this.popupInput.get('nameInput');
+  public get fieldQuestion(): any {
+    return this.popupInput.get('fieldQuestion');
   }
-  public get sizeInput(): any {
-    return this.popupInput.get('sizeInput');
+  public get size(): any {
+    return this.popupInput.get('size');
   }
-  public get required(): any {
-    return this.popupInput.get('required');
+  public get isMandatory(): any {
+    return this.popupInput.get('isMandatory');
   }
 
   input: any;
   onSubmit() {
     this.input = {
       typeInput: this.typeInput.value,
-      nameInput: this.nameInput.value,
-      sizeInput: this.sizeInput.value,
-      required: this.required.value,
+      fieldQuestion: this.fieldQuestion.value,
+      size: this.size.value,
+      isMandatory: this.isMandatory.value,
       fieldType: '2',
     };
 
@@ -413,9 +560,9 @@ export class ReactiveFormComponent implements OnInit {
 
     this.popupInput.patchValue({
       typeInput: 'text',
-      nameInput: 'input',
-      sizeInput: '12',
-      required: true,
+      fieldQuestion: 'input',
+      size: '12',
+      isMandatory: true,
     });
   }
 
@@ -434,7 +581,7 @@ export class ReactiveFormComponent implements OnInit {
   addPara() {
     this.paragraphPopup.hide();
     if (this.editParaIndex != -1 && this.editDivIndex != -1) {
-      this.dives[this.editDivIndex].fields[this.editParaIndex].pText =
+      this.dives[this.editDivIndex].fields[this.editParaIndex].fieldQuestion =
         this.pText.value;
       this.editParaIndex = -1;
       this.editDivIndex = -1;
@@ -469,8 +616,11 @@ export class ReactiveFormComponent implements OnInit {
       this.dives[this.subFormSelectId.value].fields.push(this.table);
     } else if (this.newElement == 'Paragraph') {
       this.dives[this.subFormSelectId.value].fields.push({
-        pText: this.pText.value,
+        fieldQuestion: this.pText.value,
         fieldType: '5',
+        isMandatory: true,
+        size: 12,
+        order: 0,
       });
       this.paragraph.reset();
     } else if (this.newElement == 'ComboBox') {
@@ -603,18 +753,17 @@ export class ReactiveFormComponent implements OnInit {
     } else this.dives[divId].fields.splice(fieldId, fieldId + 1);
   }
   isRequired(event: any, divId: any, fieldId: any) {
-    this.dives[divId].fields[fieldId].required = event.currentTarget.checked;
+    this.dives[divId].fields[fieldId].isMandatory = event.currentTarget.checked;
   }
 
   edit(divId: any, fieldId: any) {
     if (this.dives[divId].fields[fieldId].fieldType == '2') {
       var editInput = this.dives[divId].fields[fieldId];
 
-      this.popupInput.setValue({
-        typeInput: editInput.typeInput,
-        nameInput: editInput.nameInput,
-        sizeInput: editInput.sizeInput,
-        required: editInput.required,
+      this.popupInput.patchValue({
+        fieldQuestion: editInput.fieldQuestion,
+        size: editInput.size,
+        isMandatory: editInput.isMandatory,
       });
 
       this.formInput.show();
@@ -638,7 +787,7 @@ export class ReactiveFormComponent implements OnInit {
       //
     } else if (this.dives[divId].fields[fieldId].fieldType == '5') {
       this.paragraph.patchValue({
-        pText: this.dives[divId].fields[fieldId].pText,
+        pText: this.dives[divId].fields[fieldId].fieldQuestion,
       });
       //
       this.editParaIndex = fieldId;
@@ -650,7 +799,7 @@ export class ReactiveFormComponent implements OnInit {
 
       this.comboBoxItems.controls = cmBox.comboBoxItems;
       this.comboBoxForm.patchValue({
-        comboBoxName: cmBox.comboBoxName,
+        comboBoxName: cmBox.fieldQuestion,
       });
       //
       this.editComboBoxIndex = fieldId;

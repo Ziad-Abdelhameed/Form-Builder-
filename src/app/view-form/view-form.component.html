@@ -1,0 +1,85 @@
+<div class="container">
+  <h2>{{ formName }} Form</h2>
+  <!--  -->
+  <div
+    class=" w-{{ subForm.size }} my-4 mx-auto border border-8"
+    *ngFor="let subForm of subforms; index as i"
+    class="form-group"
+  >
+    <h2>
+      {{ subForm.name }}
+    </h2>
+    <div
+      class="form-group my-4 mx-auto"
+      *ngFor="let field of subForm.formData; index as fieldIndex"
+    >
+      <!-- input -->
+      <div *ngIf="field.fieldtype == '2'">
+        <div class="form-group col-md-{{ field.size }} mx-auto">
+          <label [for]="field.fieldQuestion + i + fieldIndex" class="form-label"
+            ><h3>{{ field.fieldQuestion }}</h3></label
+          >
+          <!--  -->
+          <input
+            type="text"
+            [id]="field.fieldQuestion + i + fieldIndex"
+            class="form-control"
+          />
+        </div>
+      </div>
+
+      <!-- input -->
+
+      <!-- Paragraph -->
+      <div class="form-floating" *ngIf="field.fieldtype == '5'">
+        {{ field.fieldQuestion }}
+      </div>
+      <!-- Paragraph -->
+
+      <!-- Table -->
+      <!-- <div *ngIf="field.fieldType == '12'">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <h2>{{ field.tableName }}</h2>
+          </tr>
+          <tr>
+            <th scope="col">#</th>
+            <th *ngFor="let col of field.columns">
+              {{ col }}
+            </th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of field.rows; let rowId = index">
+            <th scope="row">{{ row }}</th>
+            <td *ngFor="let cell of field.columns">
+              <input
+                type="checkbox"
+                *ngIf="field.fieldTableType == 'checkbox'"
+                [name]="row"
+              />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div> -->
+      <!-- Table -->
+      <!-- combo Box  -->
+
+      <div class="form-group" *ngIf="field.fieldtype == '14'">
+        <label [for]="field.fieldQuestion + i + fieldIndex" class="form-label">
+          {{ field.fieldQuestion }}
+        </label>
+
+        <select class="form-select" [id]="field.fieldQuestion + i + fieldIndex">
+          <option *ngFor="let item of field.comboBoxItems">
+            {{ item }}
+          </option>
+        </select>
+      </div>
+      <!-- combo Box  -->
+    </div>
+  </div>
+</div>

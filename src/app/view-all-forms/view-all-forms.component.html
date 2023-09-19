@@ -1,0 +1,47 @@
+<!-- <p>view-all-forms works!</p> -->
+
+<div class="container border border-3">
+  <h2>Welcome to Drag&Drop Form Builder</h2>
+  <button class="btn btn-primary mx-3 my-3 btnCreate" routerLink="/createForm">
+    Create Form
+  </button>
+
+  <h2>Last Form Created Id {{ lastFormCreated }}</h2>
+  <div>
+    <form [formGroup]="form">
+      <label for="formId" class="form-label">Form Id</label>
+      <input
+        type="number"
+        formControlName="formId"
+        id="formId"
+        class="form-control"
+        [class.is-invalid]="formId?.touched && formId?.invalid"
+      />
+
+      <small class="text-danger" *ngIf="formId.errors?.['required']"
+        >Form Id is required</small
+      >
+    </form>
+    <div class="mx-3 my-3">
+      <button class="btn btn-light mx-3 my-3" (click)="goBack()">Back</button>
+      <button class="btn btn-light mx-3 my-3" (click)="goNext()">Next</button>
+      <div>
+        <button class="btn btn-primary mx-3 my-3" (click)="viewForm()">
+          View Form
+        </button>
+        <button class="btn btn-secondary mx-3 my-3" (click)="editForm()">
+          Edit Form
+        </button>
+        <button class="btn btn-danger mx-3 my-3" (click)="deleteForm()">
+          Delete Form
+        </button>
+      </div>
+      <!-- <button class="btn btn-secondary mx-3 my-3" (click)="editForm()">
+        Edit Form
+      </button> -->
+      <!-- <button class="btn btn-danger mx-3 my-3" (click)="deleteForm()">
+        Delete Form
+      </button> -->
+    </div>
+  </div>
+</div>

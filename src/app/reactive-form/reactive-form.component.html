@@ -77,7 +77,7 @@
                   class="form-check-input"
                   type="checkbox"
                   [id]="'required' + i + fieldIndex"
-                  [checked]="field.required"
+                  [checked]="field.isMandatory"
                   (change)="isRequired($event, i, fieldIndex)"
                 />
                 <label
@@ -90,18 +90,15 @@
               <!-- common -->
               <!-- input -->
               <div *ngIf="field.fieldType == '2'">
-                <div
-                  class="form-group col-md-{{ field.sizeInput }} mx-auto"
-                  *ngIf="field.typeInput != ''"
-                >
+                <div class="form-group col-md-{{ field.size }} mx-auto">
                   <label
-                    [for]="field.nameInput + i + fieldIndex"
+                    [for]="field.fieldQuestion + i + fieldIndex"
                     class="form-label"
-                    ><h2>{{ field.nameInput }}</h2></label
+                    ><h2>{{ field.fieldQuestion }}</h2></label
                   >
                   <input
                     [type]="field.typeInput"
-                    [id]="field.nameInput + i + fieldIndex"
+                    [id]="field.fieldQuestion + i + fieldIndex"
                     class="form-control"
                   />
                 </div>
@@ -111,7 +108,7 @@
 
               <!-- Paragraph -->
               <div class="form-floating" *ngIf="field.fieldType == '5'">
-                <p>{{ field.pText }}</p>
+                <p>{{ field.fieldQuestion }}</p>
               </div>
               <!-- Paragraph -->
               <!-- Table -->
@@ -148,15 +145,15 @@
 
               <div class="form-group" *ngIf="field.fieldType == '14'">
                 <label
-                  [for]="field.comboBoxName + i + fieldIndex"
+                  [for]="field.fieldQuestion + i + fieldIndex"
                   class="form-label"
                 >
-                  {{ field.comboBoxName }}
+                  {{ field.fieldQuestion }}
                 </label>
 
                 <select
                   class="form-select"
-                  [id]="field.comboBoxName + i + fieldIndex"
+                  [id]="field.fieldQuestion + i + fieldIndex"
                   (change)="optionChoiceSubForm($event, i, fieldIndex)"
                 >
                   <option *ngFor="let item of field.comboBoxItems">
@@ -242,7 +239,7 @@
               type="text"
               class="form-control"
               id="nameInput"
-              formControlName="nameInput"
+              formControlName="fieldQuestion"
               autofocus
             />
             <label for="nameInput" class="col-form-label"
@@ -255,14 +252,14 @@
               type="range"
               class="form-range form-control"
               id="sizeInput"
-              formControlName="sizeInput"
+              formControlName="size"
               min="1"
               max="12"
-              [value]="sizeInput.value"
+              [value]="size.value"
               step="1"
             />
             <h2>
-              {{ sizeInput.value }}
+              {{ size.value }}
             </h2>
           </div>
         </form>
